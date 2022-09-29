@@ -685,3 +685,11 @@ BufferPoolManager &BufferPoolManager::instance()
 {
   return *default_bpm;
 }
+RC BufferPoolManager::remove_file(const char *file_name)
+{
+  if (remove(file_name) != 0) {
+      LOG_ERROR("Failed to remove file %s, due to %s.", file_name, strerror(errno));
+      return RC::IOERR_DELETE;
+  }
+  return RC::SUCCESS;
+}
