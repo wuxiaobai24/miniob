@@ -731,6 +731,18 @@ RC Table::delete_record(Trx *trx, Record *record)
   return rc;
 }
 
+RC Table::update_record(Trx *trx, Record *record)
+{
+  RC rc = RC::SUCCESS;
+  if (trx != nullptr) {
+    // TODO: trx support update record
+  } else {
+    // TODO: update entry of indexes
+    rc = record_handler_->update_record(record);
+  }
+  return rc;
+}
+
 RC Table::commit_delete(Trx *trx, const RID &rid)
 {
   RC rc = RC::SUCCESS;
