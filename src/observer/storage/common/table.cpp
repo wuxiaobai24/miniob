@@ -87,6 +87,8 @@ RC Table::create(
     LOG_ERROR("Failed to init table meta. name:%s, ret:%d", name, rc);
     return rc;  // delete table file
   }
+  LOG_DEBUG("Table meta has been initialized: %s", name);
+  LOG_DEBUG("Table path: %s", path);
 
   std::fstream fs;
   fs.open(path, std::ios_base::out | std::ios_base::binary);
@@ -117,6 +119,47 @@ RC Table::create(
   base_dir_ = base_dir;
   clog_manager_ = clog_manager;
   LOG_INFO("Successfully create table %s:%s", base_dir, name);
+  return rc;
+}
+
+
+RC Table::drop(const char *path, const char *name, const char *base_dir)
+{
+  if (common::is_blank(name)) {
+    LOG_WARN("Name cannot be empty");
+    return RC::INVALID_ARGUMENT;
+  }
+  LOG_INFO("Begin to drop table %s:%s", base_dir, name);
+
+  RC rc = RC::SUCCESS;
+  // 判断表文件是否已经存在
+  int fd = ::open(path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+  if (!(fd < 0 && EEXIST == errno)) {
+    LOG_ERROR("Failed to drop table file, it has not been created. %s, EEXIST, %s", path, strerror(errno));
+    return RC::SCHEMA_TABLE_NOT_EXIST;
+  }
+  close(fd);
+
+  rc = remove_record_handler();
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to drop table %s due to remove record handler failed.", name);
+    return rc;
+  }
+
+  BufferPoolManager &bpm = BufferPoolManager::instance();
+  std::string data_file = table_data_file(base_dir, name);
+  rc = bpm.remove_file(data_file.c_str());
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to drop table %s due to remove data file failed.", name);
+    return rc;
+  }
+
+  if (remove(path) != 0) {
+    LOG_ERROR("Failed to remove table file. filename=%s, errmsg=%d:%s", path, errno, strerror(errno));
+    return RC::IOERR;
+  }
+
+  LOG_INFO("Successfully drop table %s:%s", base_dir, name);
   return rc;
 }
 
@@ -394,6 +437,25 @@ RC Table::init_record_handler(const char *base_dir)
     return rc;
   }
 
+  return rc;
+}
+
+RC Table::remove_record_handler()
+{
+  RC rc = RC::SUCCESS;
+  if (record_handler_) {
+    record_handler_->close();
+    delete record_handler_;
+    record_handler_ = nullptr;
+  }
+  if (data_buffer_pool_) {
+    rc = data_buffer_pool_->close_file();
+    if (rc != RC::SUCCESS) {
+      LOG_ERROR("Failed to close data file. rc=%d:%s", rc, strrc(rc));
+      return rc;
+    }
+    data_buffer_pool_ = nullptr;
+  }
   return rc;
 }
 

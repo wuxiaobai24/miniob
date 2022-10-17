@@ -75,6 +75,8 @@ public:
     return record_handler_;
   }
 
+  RC drop(const char *path, const char *name, const char *base_dir);
+
 public:
   const char *name() const;
 
@@ -122,6 +124,7 @@ private:
   DiskBufferPool *data_buffer_pool_ = nullptr;   /// 数据文件关联的buffer pool
   RecordFileHandler *record_handler_ = nullptr;  /// 记录操作
   std::vector<Index *> indexes_;
+  RC remove_record_handler();
 };
 
 #endif  // __OBSERVER_STORAGE_COMMON_TABLE_H__

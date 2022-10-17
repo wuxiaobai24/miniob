@@ -328,6 +328,8 @@ public:
 
   RC flush_page(Frame &frame);
 
+  RC remove_file(const char *file_name);
+
 public:
   static void set_instance(BufferPoolManager *bpm);
   static BufferPoolManager &instance();
