@@ -355,20 +355,18 @@ select:				/*  select 语句的语法解析树*/
 
 select_attr:
 	STAR COMMA ID attr_list {
-			RelAttr attr;
-			relation_attr_init(&attr, NULL, "*");
-			RelAttr attr2;
+			RelAttr attr, attr2;
 			relation_attr_init(&attr2, NULL, $3);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+			relation_attr_init(&attr, NULL, "*");
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr2);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
 	| STAR COMMA ID DOT ID attr_list {
-			RelAttr attr;
-			relation_attr_init(&attr, NULL, "*");
-			RelAttr attr2;
+			RelAttr attr, attr2;
 			relation_attr_init(&attr2, $3, $5);
-			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+			relation_attr_init(&attr, NULL, "*");
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr2);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}	
     | STAR {  
 			RelAttr attr;
