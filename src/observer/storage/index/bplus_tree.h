@@ -44,7 +44,8 @@ public:
 
   int operator()(const char *v1, const char *v2) const {
     switch (attr_type_) {
-    case INTS: {
+    case INTS: 
+    case DATES: {
       return compare_int((void *)v1, (void *)v2);
     }
       break;
@@ -117,10 +118,10 @@ public:
     case CHARS: {
       std::string str;
       for (int i = 0; i < attr_length_; i++) {
-	if (v[i] == 0) {
-	  break;
-	}
-	str.push_back(v[i]);
+      if (v[i] == 0) {
+        break;
+      }
+      str.push_back(v[i]);
       }
       return str;
     }
